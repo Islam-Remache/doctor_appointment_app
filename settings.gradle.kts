@@ -21,4 +21,4 @@ dependencyResolutionManagement {
 
 rootProject.name = "doctor_appointment_app"
 include(":app")
- 
+include(":logic")
