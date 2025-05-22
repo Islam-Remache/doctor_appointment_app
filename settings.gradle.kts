@@ -19,6 +19,6 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "doctor_appointment_app"
+rootProject.name = "prescription_manag2"
 include(":app")
-include(":logic")
+ 
