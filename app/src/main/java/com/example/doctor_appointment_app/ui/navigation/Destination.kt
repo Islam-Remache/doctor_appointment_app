@@ -1,8 +1,11 @@
-package com.example.doctor_appointment_app.ui.navigation
+package com.example.prescription_manag2.ui.navigation
 
-sealed class Destination(val route:String) {
-    object NotificationScreen : Destination("notifications")
-    object AppointmentDetails : Destination("appointementDetail/{id}") {
-        fun createRoute(id: Int) = "appointementDetail/$id"
+sealed class Destination(val route: String) {
+    object PrescriptionDetailsApp : Destination("PrescriptionDetailsApp/{prescriptionId}") {
+        fun createRoute(prescriptionId: Long) = "PrescriptionDetailsApp/$prescriptionId"
     }
+    object PrescriptionAddApp : Destination("PrescriptionAddApp")
+    object PrescriptionListApp : Destination("PrescriptionListApp")
+
+
 }

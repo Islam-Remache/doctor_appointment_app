@@ -1,40 +1,39 @@
-package com.example.doctor_appointment_app.viewmodel
+package com.example.dzdoc.ui.viewmodel
 
-
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
+// Removed: import androidx.lifecycle.LiveData
+// Removed: import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import com.example.doctor_appointment_app.model.appointment.Appointment
-import com.example.doctor_appointment_app.model.appointment.AppointmentStatus
-import com.example.doctor_appointment_app.repository.AppointmentRepository
+import com.example.dzdoc.data.repository.AppointmentRepository
+import com.example.dzdoc.ui.model.Appointment // Ensure this import is correct
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
-
 class AppointmentViewModel(
     private val repository: AppointmentRepository
 ) : ViewModel() {
 
-    // UI State
-    sealed class UiState {
-        object Loading : UiState()
-        data class Success(val appointment: Appointment) : UiState()
-        data class Error(val message: String) : UiState()
-        object Initial : UiState()
+    // UI State sealed class (or interface)
+    sealed interface UiState { // Changed to interface for modern Kotlin style, class is also fine
+        object Initial : UiState
+        object Loading : UiState
+        data class Success(val appointment: Appointment) : UiState
+        data class Error(val message: String) : UiState
     }
 
     private val _uiState = MutableStateFlow<UiState>(UiState.Initial)
     val uiState: StateFlow<UiState> = _uiState.asStateFlow()
 
-    private val _actionSuccessEvent = MutableLiveData<Boolean>()
-    val actionSuccessEvent: LiveData<Boolean> = _actionSuccessEvent
+    // Converted to StateFlow
+    private val _actionSuccessEvent = MutableStateFlow<Boolean?>(null)
+    val actionSuccessEvent: StateFlow<Boolean?> = _actionSuccessEvent.asStateFlow()
 
-    private val _errorMessage = MutableLiveData<String>()
-    val errorMessage: LiveData<String> = _errorMessage
+    // Converted to StateFlow
+    private val _errorMessage = MutableStateFlow<String?>(null)
+    val errorMessage: StateFlow<String?> = _errorMessage.asStateFlow()
 
     fun getAppointmentDetails(appointmentId: Int) {
         _uiState.value = UiState.Loading
@@ -44,13 +43,15 @@ class AppointmentViewModel(
                     _uiState.value = UiState.Success(appointment)
                 }
                 .onFailure { error ->
-                    _uiState.value = UiState.Error(error.message ?: "Unknown error")
-                    _errorMessage.value = error.message ?: "Failed to load appointment details"
+                    val errorMessageText = error.message ?: "Unknown error loading details"
+                    _uiState.value = UiState.Error(errorMessageText)
+                    _errorMessage.value = errorMessageText // Also set the general error message
                 }
         }
     }
 
     fun confirmAppointment(appointmentId: Int, doctorId: Int) {
+        val previousState = _uiState.value // Store previous state in case of failure
         _uiState.value = UiState.Loading
         viewModelScope.launch {
             repository.confirmAppointment(appointmentId, doctorId)
@@ -59,18 +60,20 @@ class AppointmentViewModel(
                     _actionSuccessEvent.value = true
                 }
                 .onFailure { error ->
-                    _errorMessage.value = error.message ?: "Failed to update appointment status"
-                    // Keep the current appointment data but show error
-                    if (_uiState.value is UiState.Success) {
-                        // No change to the UI state, just show error
+                    val errorMessageText = error.message ?: "Failed to confirm appointment"
+                    _errorMessage.value = errorMessageText
+                    // Restore previous state or set to specific error for appointment details
+                    if (previousState is UiState.Success) {
+                        _uiState.value = previousState // Keep showing current details, error will be displayed via _errorMessage
                     } else {
-                        _uiState.value = UiState.Error(error.message ?: "Unknown error")
+                        _uiState.value = UiState.Error(errorMessageText) // Fallback if no previous success state
                     }
                 }
         }
     }
 
     fun cancelAppointment(appointmentId: Int, doctorId: Int) {
+        val previousState = _uiState.value // Store previous state in case of failure
         _uiState.value = UiState.Loading
         viewModelScope.launch {
             repository.cancelAppointment(appointmentId, doctorId)
@@ -79,19 +82,30 @@ class AppointmentViewModel(
                     _actionSuccessEvent.value = true
                 }
                 .onFailure { error ->
-                    _errorMessage.value = error.message ?: "Failed to update appointment status"
-                    // Keep the current appointment data but show error
-                    if (_uiState.value is UiState.Success) {
-                        // No change to the UI state, just show error
+                    val errorMessageText = error.message ?: "Failed to cancel appointment"
+                    _errorMessage.value = errorMessageText
+                    // Restore previous state or set to specific error for appointment details
+                    if (previousState is UiState.Success) {
+                        _uiState.value = previousState // Keep showing current details, error will be displayed via _errorMessage
                     } else {
-                        _uiState.value = UiState.Error(error.message ?: "Unknown error")
+                        _uiState.value = UiState.Error(errorMessageText) // Fallback if no previous success state
                     }
                 }
         }
     }
+
+    // Call this from UI after the event has been handled
+    fun consumeActionSuccessEvent() {
+        _actionSuccessEvent.value = null
+    }
+
+    // Call this from UI after the error message has been shown
+    fun clearErrorMessage() {
+        _errorMessage.value = null
+    }
 }
 
-// Factory to create AppointmentViewModel instances
+// Factory to create AppointmentViewModel instances (remains the same)
 class AppointmentViewModelFactory(
     private val repository: AppointmentRepository
 ) : ViewModelProvider.Factory {

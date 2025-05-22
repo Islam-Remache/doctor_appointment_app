@@ -1,21 +1,21 @@
 {
   "project_info": {
-    "project_number": "336127137285",
-    "project_id": "doctorappointmentapp-b2b59",
-    "storage_bucket": "doctorappointmentapp-b2b59.firebasestorage.app"
+    "project_number": "659461978445",
+    "project_id": "avds-bedd0",
+    "storage_bucket": "avds-bedd0.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:336127137285:android:b6f11658087e5ccf3dee6c",
+        "mobilesdk_app_id": "1:659461978445:android:70b200bb370fc6b41b9f04",
         "android_client_info": {
-          "package_name": "com.example.doctor_appointment_app"
+          "package_name": "com.autonomousdelivery.app"
         }
       },
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyCZZm53PZT9rmjRbIO2dLn9Jz1lFWHF3yQ"
+          "current_key": "AIzaSyCYH5Gt5-ctO-5yuoc_4Xlz5zFTUJnMdkk"
         }
       ],
       "services": {

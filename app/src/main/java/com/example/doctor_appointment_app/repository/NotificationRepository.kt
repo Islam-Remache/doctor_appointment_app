@@ -1,10 +1,9 @@
-package com.example.doctor_appointment_app.repository
+package com.example.dzdoc.data.repository
 
 
-
-import com.example.doctor_appointment_app.model.notifications.NotificationItem
-import com.example.doctor_appointment_app.model.notifications.toDomainModel
-import com.example.doctor_appointment_app.service.NotificationService
+import com.example.dzdoc.ui.model.NotificationItem
+import com.example.dzdoc.ui.model.toDomainModel
+import com.example.dzdoc.data.remote.NotificationService
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import javax.inject.Inject

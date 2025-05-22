@@ -1,4 +1,4 @@
-package com.example.doctor_appointment_app.ui.theme
+package com.example.prescription_manag2.ui.theme
 
 import android.app.Activity
 import android.os.Build
@@ -34,7 +34,7 @@ private val LightColorScheme = lightColorScheme(
 )
 
 @Composable
-fun Doctor_appointment_appTheme(
+fun Prescription_manag2Theme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     // Dynamic color is available on Android 12+
     dynamicColor: Boolean = true,

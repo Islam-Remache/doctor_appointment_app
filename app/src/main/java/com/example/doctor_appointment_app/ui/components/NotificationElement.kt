@@ -1,4 +1,5 @@
-package com.example.doctor_appointment_app.ui.components
+package com.example.dzdoc.ui.components
+
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -30,7 +31,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.doctor_appointment_app.model.notifications.NotificationType
+import com.example.dzdoc.ui.model.NotificationType
 
 data class NotificationMeta(
     val color: Color,
@@ -55,7 +56,7 @@ object NotificationStyle {
 
 @Composable
 fun NotificationElement(
-    notification: com.example.doctor_appointment_app.model.notifications.NotificationItem,
+    notification: com.example.dzdoc.ui.model.NotificationItem,
     modifier: Modifier = Modifier,
     onDismiss: () -> Unit,
     onRead: () -> Unit
