@@ -19,6 +19,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -190,19 +191,43 @@ fun NotificationScreen(
                                     animationSpec = tween(durationMillis = 300)
                                 ) + fadeOut()
                             ) {
-                                NotificationElement(
-                                    notification = notification,
-                                    onDismiss = {
-                                        scope.launch {
-                                            isVisible = false
-                                            delay(300) // Wait for animation to complete
-                                            viewModel.removeNotification(notification.id)
+                                // Wrap NotificationElement with clickable modifier for the whole item
+                                Box(
+                                    modifier = Modifier
+                                        .clickable {
+                                            if (!notification.isRead) {
+                                                viewModel.markAsRead(notification.id)
+                                            }
                                         }
-                                    },
-                                    onRead = {
-                                        viewModel.markAsRead(notification.id)
-                                    }
-                                )
+                                ) {
+                                    // Apply shadow only to unread notifications
+                                    NotificationElement(
+                                        notification = notification,
+                                        modifier = Modifier
+                                            .then(
+                                                if (!notification.isRead) {
+                                                    Modifier
+                                                        .shadow(
+                                                            elevation = 12.dp,
+                                                            shape = RoundedCornerShape(12.dp)
+                                                        )
+
+                                                } else {
+                                                    Modifier
+                                                }
+                                            ),
+                                        onDismiss = {
+                                            scope.launch {
+                                                isVisible = false
+                                                delay(300) // Wait for animation to complete
+                                                viewModel.removeNotification(notification.id)
+                                            }
+                                        },
+                                        onRead = {
+                                            viewModel.markAsRead(notification.id)
+                                        }
+                                    )
+                                }
                             }
                         }
                     }

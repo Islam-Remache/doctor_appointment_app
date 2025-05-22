@@ -1,85 +1,167 @@
 package com.example.doctor_appointment_app.ui.screens.doctor.appointments
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import androidx.lifecycle.ViewModel
 import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
 import coil.compose.rememberAsyncImagePainter
-import com.example.doctor_appointment_app.R
-import com.google.accompanist.permissions.ExperimentalPermissionsApi
-import com.google.accompanist.permissions.isGranted
-import com.google.accompanist.permissions.rememberPermissionState
+import com.example.doctor_appointment_app.model.appointment.Appointment
+import com.example.doctor_appointment_app.model.appointment.AppointmentStatus
+import com.example.doctor_appointment_app.viewmodel.AppointmentViewModel
 import java.text.NumberFormat
 import java.util.*
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
-
 
 @Composable
-fun AppointmentApp() {
-    val navController = rememberNavController()
+fun AppointmentDetailsScreen(
+    navController: NavController,
+    appointmentId: Int,
+    viewModel: AppointmentViewModel
+) {
+    val uiState by viewModel.uiState.collectAsState()
+    val actionSuccess by viewModel.actionSuccessEvent.observeAsState()
+    val errorMessage by viewModel.errorMessage.observeAsState()
+    var showCancellationDialog by remember { mutableStateOf(false) }
+
+    // Load appointment data when screen is created
+    LaunchedEffect(appointmentId) {
+        viewModel.getAppointmentDetails(appointmentId)
+    }
+
+    // Handle action success
+    LaunchedEffect(actionSuccess) {
+        if (actionSuccess == true) {
+            // Show toast or navigate back
+        }
+    }
+
+    // Show error messages
+    errorMessage?.let {
+        LaunchedEffect(errorMessage) {
+            // Show snackbar or toast with error message
+        }
+    }
+
     val scrollState = rememberScrollState()
-    Scaffold(
 
-    ) { paddingValues ->
-        Box(modifier = Modifier
-            .padding(paddingValues)
-            .verticalScroll(scrollState)
-        ) {
+    Box(modifier = Modifier.fillMaxSize()) {
+        when (uiState) {
+            is AppointmentViewModel.UiState.Loading -> {
+                CircularProgressIndicator(
+                    modifier = Modifier.align(Alignment.Center),
+                    color = Color(0xFF14A4C0)
+                )
+            }
 
-            AppointmentDetailsScreen(navController)
+            is AppointmentViewModel.UiState.Error -> {
+                Column(
+                    modifier = Modifier.align(Alignment.Center),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text("Error: ${(uiState as AppointmentViewModel.UiState.Error).message}")
+                    Button(
+                        onClick = { viewModel.getAppointmentDetails(appointmentId) },
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color(0xFF14A4C0)
+                        )
+                    ) {
+                        Text("Retry")
+                    }
+                }
+            }
+
+            is AppointmentViewModel.UiState.Success -> {
+                val appointment = (uiState as AppointmentViewModel.UiState.Success).appointment
+                AppointmentDetailsContent(
+                    appointment = appointment,
+                    navController = navController,
+                    scrollState = scrollState,
+                    onAcceptClick = {
+                        viewModel.confirmAppointment(appointmentId, 1)
+                    },
+                    onCancelClick = {
+                        showCancellationDialog = true
+                    }
+                )
+
+                // Cancellation confirmation dialog
+                if (showCancellationDialog) {
+                    AlertDialog(
+                        onDismissRequest = { showCancellationDialog = false },
+                        title = {
+                            Text(
+                                "Are you sure you want to cancel this patient's appointment?",
+                                fontWeight = FontWeight.Bold
+                            )
+                        },
+                        confirmButton = {
+                            TextButton(
+                                onClick = {
+                                    viewModel.cancelAppointment(appointmentId, 1)
+                                    showCancellationDialog = false
+                                }
+                            ) {
+                                Text(
+                                    "YES",
+                                    color = Color.Red,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
+                        },
+                        dismissButton = {
+                            TextButton(
+                                onClick = { showCancellationDialog = false }
+                            ) {
+                                Text(
+                                    "NO",
+                                    color = Color.Gray,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
+                        }
+                    )
+                }
+            }
+
+            is AppointmentViewModel.UiState.Initial -> {
+                // Just show empty state or nothing
+            }
         }
     }
 }
 
-
-data class AppointmentData(
-    val status: AppointmentStatus = AppointmentStatus.PENDING,
-    val date: String = "Monday 23 Mar 2025",
-    val time: String = "08:00 AM",
-    val location: String = "Imaginary street, number 25",
-    val area: String = "Oued Smar, Alger",
-    val patientName: String = "Mekhloufi Sami",
-    val patientAge: Int = 26,
-    val patientImage: String = "", // URL to image
-    val sessionPrice: Double = 2500.00,
-    val currency: String = "DA"
-)
-
-enum class AppointmentStatus {
-    CONFIRMED, PENDING, CANCELLED
-}
-
-
 @Composable
-fun AppointmentDetailsScreen(navController: NavController) {
-    var appointmentData by remember { mutableStateOf(AppointmentData()) }
-    var showCancellationDialog by remember { mutableStateOf(false) }
-
+fun AppointmentDetailsContent(
+    appointment: Appointment,
+    navController: NavController,
+    scrollState: ScrollState,
+    onAcceptClick: () -> Unit,
+    onCancelClick: () -> Unit
+) {
     Column(
         modifier = Modifier
             .fillMaxSize()
             .padding(16.dp)
+            .verticalScroll(scrollState)
     ) {
         // Header
         Row(
@@ -145,10 +227,12 @@ fun AppointmentDetailsScreen(navController: NavController) {
             )
 
             // Status chip
-            val (backgroundColor, textColor) = when (appointmentData.status) {
+            val (backgroundColor, textColor) = when (appointment?.status) {
                 AppointmentStatus.CONFIRMED -> Color(0xFF4CAF50) to Color.White
                 AppointmentStatus.PENDING -> Color(0xFF14A4C0) to Color.White
-                AppointmentStatus.CANCELLED -> Color.Red to Color.White
+                AppointmentStatus.DECLINED -> Color.Red to Color.White
+                AppointmentStatus.COMPLETED -> Color.Red to Color.White
+                else -> Color.Red to Color.White
             }
 
             Surface(
@@ -157,7 +241,7 @@ fun AppointmentDetailsScreen(navController: NavController) {
                 modifier = Modifier.padding(4.dp)
             ) {
                 Text(
-                    text = appointmentData.status.name.lowercase()
+                    text = appointment.status.name.lowercase()
                         .replaceFirstChar { it.uppercase() },
                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
                     color = textColor
@@ -206,12 +290,12 @@ fun AppointmentDetailsScreen(navController: NavController) {
                             fontSize = 16.sp
                         )
                         Text(
-                            text = appointmentData.date,
+                            text = appointment.date,
                             color = Color.Gray,
                             fontSize = 14.sp
                         )
                         Text(
-                            text = appointmentData.time,
+                            text = appointment.time,
                             color = Color.Gray,
                             fontSize = 14.sp
                         )
@@ -255,19 +339,19 @@ fun AppointmentDetailsScreen(navController: NavController) {
                             fontSize = 16.sp
                         )
                         Text(
-                            text = appointmentData.location,
+                            text = appointment.location,
                             color = Color.Gray,
                             fontSize = 14.sp
                         )
                         Text(
-                            text = appointmentData.area,
+                            text = appointment.area,
                             color = Color.Gray,
                             fontSize = 14.sp
                         )
                     }
 
                     // Edit button for Image 2 (pending status)
-                    if (appointmentData.status == AppointmentStatus.PENDING) {
+                    if (appointment.status == AppointmentStatus.PENDING) {
                         IconButton(onClick = { /* Edit location */ }) {
                             Icon(
                                 imageVector = Icons.Default.Edit,
@@ -317,7 +401,7 @@ fun AppointmentDetailsScreen(navController: NavController) {
             // Patient image
             Image(
                 painter = rememberAsyncImagePainter(
-                    model = appointmentData.patientImage
+                    model = appointment.patientImage
                 ),
                 contentDescription = "Patient Photo",
                 modifier = Modifier
@@ -331,12 +415,12 @@ fun AppointmentDetailsScreen(navController: NavController) {
             // Patient details
             Column {
                 Text(
-                    text = appointmentData.patientName,
+                    text = appointment.patientName,
                     fontWeight = FontWeight.Bold,
                     fontSize = 18.sp
                 )
                 Text(
-                    text = "${appointmentData.patientAge} yo",
+                    text = "${appointment.patientAge} yo",
                     color = Color.Gray,
                     fontSize = 14.sp
                 )
@@ -363,27 +447,22 @@ fun AppointmentDetailsScreen(navController: NavController) {
                 fontSize = 16.sp
             )
 
-            Row(verticalAlignment = Alignment.CenterVertically) {
-
-
-
-                Text(
-                    text = NumberFormat
-                        .getCurrencyInstance(Locale("ar", "DZ"))
-                        .apply {
-                            currency = Currency.getInstance("DZD")
-                        }
-                        .format(appointmentData.sessionPrice)
-                        .replace("DZD", "DA"),
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 18.sp,
-                    color = Color(0xFF14A4C0)
-                )
-            }
+            Text(
+                text = NumberFormat
+                    .getCurrencyInstance(Locale("ar", "DZ"))
+                    .apply {
+                        currency = Currency.getInstance("DZD")
+                    }
+                    .format(appointment.sessionPrice)
+                    .replace("DZD", "DA"),
+                fontWeight = FontWeight.Bold,
+                fontSize = 18.sp,
+                color = Color(0xFF14A4C0)
+            )
         }
 
         // Bottom actions based on status
-        when (appointmentData.status) {
+        when (appointment.status) {
             AppointmentStatus.CONFIRMED -> {
                 // QR Code button
                 Button(
@@ -418,9 +497,7 @@ fun AppointmentDetailsScreen(navController: NavController) {
                         .padding(vertical = 8.dp)
                 ) {
                     OutlinedButton(
-                        onClick = {
-                            appointmentData = appointmentData.copy(status = AppointmentStatus.CONFIRMED)
-                        },
+                        onClick = onAcceptClick,
                         modifier = Modifier
                             .weight(1f)
                             .padding(end = 8.dp),
@@ -443,7 +520,7 @@ fun AppointmentDetailsScreen(navController: NavController) {
                     }
 
                     Button(
-                        onClick = { showCancellationDialog = true },
+                        onClick = onCancelClick,
                         modifier = Modifier
                             .weight(1f)
                             .padding(start = 8.dp),
@@ -465,44 +542,4 @@ fun AppointmentDetailsScreen(navController: NavController) {
             else -> { /* No actions for cancelled status */ }
         }
     }
-
-    // Cancellation confirmation dialog
-    if (showCancellationDialog) {
-        AlertDialog(
-            onDismissRequest = { showCancellationDialog = false },
-            title = {
-                Text(
-                    "Are you sure you want to cancel this patient's appointment?",
-                    fontWeight = FontWeight.Bold
-                )
-            },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        appointmentData = appointmentData.copy(status = AppointmentStatus.CANCELLED)
-                        showCancellationDialog = false
-                    }
-                ) {
-                    Text(
-                        "YES",
-                        color = Color.Red,
-                        fontWeight = FontWeight.Bold
-                    )
-                }
-            },
-            dismissButton = {
-                TextButton(
-                    onClick = { showCancellationDialog = false }
-                ) {
-                    Text(
-                        "NO",
-                        color = Color.Gray,
-                        fontWeight = FontWeight.Bold
-                    )
-                }
-            }
-        )
-    }
 }
-
-

@@ -7,6 +7,7 @@ import retrofit2.Response
 import retrofit2.http.DELETE
 import retrofit2.http.GET
 import retrofit2.http.PATCH
+import retrofit2.http.PUT
 import retrofit2.http.Path
 
 interface NotificationService {
@@ -16,6 +17,6 @@ interface NotificationService {
     @DELETE("notifications/{id}")
     suspend fun removeNotification(@Path("id") id: Int): Response<Unit>
 
-    @PATCH("notifications/{id}/read")
+    @PUT("notifications/{id}/read")
     suspend fun markAsRead(@Path("id") id: Int): Response<Unit>
 }

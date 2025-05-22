@@ -20,6 +20,7 @@ import androidx.compose.material.icons.outlined.Refresh
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -55,17 +56,24 @@ object NotificationStyle {
 @Composable
 fun NotificationElement(
     notification: com.example.doctor_appointment_app.model.notifications.NotificationItem,
+    modifier: Modifier = Modifier,
     onDismiss: () -> Unit,
     onRead: () -> Unit
 ) {
     val color = NotificationStyle.getMeta(notification.type).color
     val icon = NotificationStyle.getMeta(notification.type).icon
 
+    // Default background color - will be overridden if custom background is provided via modifier
+    val backgroundColor = Color(0xFFE6F7EC) // Light green background
+
     Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(12.dp))
-            .background(Color(0xFFE6F7EC)) // Light green background
+        modifier = modifier
+            .then(
+                Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(backgroundColor)
+            )
     ) {
         // Vertical colored line on the left
         Box(
@@ -91,6 +99,7 @@ fun NotificationElement(
                 modifier = Modifier.size(16.dp)
             )
         }
+
 
         // Main content
         Row(
@@ -126,8 +135,8 @@ fun NotificationElement(
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Text(
-                        text = "notification.title",
-                        fontWeight = FontWeight.Bold,
+                        text = notification.title,
+                        fontWeight = if (!notification.isRead) FontWeight.Bold else FontWeight.Normal,
                         fontSize = 16.sp,
                         modifier = Modifier.weight(1f)
                     )
@@ -143,8 +152,10 @@ fun NotificationElement(
                 Text(
                     text = notification.message,
                     color = Color.DarkGray,
-                    fontSize = 14.sp
+                    fontSize = 14.sp,
+                    fontWeight = if (!notification.isRead) FontWeight.Medium else FontWeight.Normal,
                 )
+
             }
         }
     }

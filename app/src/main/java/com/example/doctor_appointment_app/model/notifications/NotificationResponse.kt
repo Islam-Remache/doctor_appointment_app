@@ -10,7 +10,8 @@ import java.text.SimpleDateFormat
 data class NotificationItemDto(
     val id: Int,
     val message: String,
-    val user_type: String,     // or use an enum if you prefer
+    val user_type: String,
+    val title: String,// or use an enum if you prefer
     val user_id: Int,
     val is_read: Boolean,
     val sent_at: String,
@@ -27,9 +28,10 @@ fun NotificationItemDto.toDomainModel(): NotificationItem {
     return NotificationItem(
         id = id,
         message = message,
+        title = title,
         timestamp = formatTimeDifference( sent_at),
         isRead = is_read,
-        type = NotificationType.ACCEPTED,
+        type = type
     )
 }
 

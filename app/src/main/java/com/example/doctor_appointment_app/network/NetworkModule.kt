@@ -1,6 +1,7 @@
 package com.example.doctor_appointment_app.network
 
 import com.example.doctor_appointment_app.service.NotificationService
+import com.example.doctor_appointment_app.service.AppointmentService
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -49,5 +50,13 @@ object NetworkModule {
     @Provides
     fun provideNotificationService(retrofit: Retrofit): NotificationService =
         retrofit.create(NotificationService::class.java)
+
+    @Singleton
+    @Provides
+    fun provideAppointmentService(retrofit: Retrofit): AppointmentService =
+        retrofit.create(AppointmentService::class.java)
 }
+
+
+
 

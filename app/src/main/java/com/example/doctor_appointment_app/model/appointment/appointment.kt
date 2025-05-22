@@ -1,8 +1,10 @@
 package com.example.doctor_appointment_app.model.appointment
 
+import com.google.gson.annotations.SerializedName
+
 
 data class Appointment(
-    val id: String,
+    val id: Int,
     val status: AppointmentStatus = AppointmentStatus.PENDING,
     val date: String,
     val time: String,
@@ -15,14 +17,22 @@ data class Appointment(
     val currency: String = "DA"
 )
 
+
+
+
+
+
 enum class AppointmentStatus {
-    CONFIRMED, PENDING, CANCELLED
+    @SerializedName("pending") PENDING,
+    @SerializedName("confirmed") CONFIRMED,
+    @SerializedName("declined") DECLINED,
+    @SerializedName("completed") COMPLETED
 }
 
 // Response wrapper for API calls
 data class AppointmentResponse<T>(
     val success: Boolean,
-    val data: T? = null,
+    val data: T,
     val message: String? = null,
     val errors: List<String>? = null
 )
