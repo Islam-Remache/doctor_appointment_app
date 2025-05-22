@@ -1,4 +1,4 @@
-package com.example.doctor_appointment_app.ui.theme
+package com.example.prescription_manag2.ui.theme
 
 import androidx.compose.ui.graphics.Color
 

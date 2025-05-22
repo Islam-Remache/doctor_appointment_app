@@ -1,23 +1,23 @@
 plugins {
     alias(libs.plugins.android.application)
-    alias(libs.plugins.jetbrains.kotlin.android)
+    alias(libs.plugins.kotlin.android)
+    alias(libs.plugins.kotlin.compose)
+    id("kotlin-kapt")
+
 }
 
 android {
-    namespace = "com.example.doctor_appointment_app"
+    namespace = "com.example.prescription_manag2"
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.example.doctor_appointment_app"
+        applicationId = "com.example.prescription_manag2"
         minSdk = 24
-        targetSdk = 34
+        targetSdk = 35
         versionCode = 1
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-        vectorDrawables {
-            useSupportLibrary = true
-        }
     }
 
     buildTypes {
@@ -30,26 +30,51 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
+        sourceCompatibility = JavaVersion.VERSION_11
+        targetCompatibility = JavaVersion.VERSION_11
     }
     kotlinOptions {
-        jvmTarget = "1.8"
+        jvmTarget = "11"
     }
     buildFeatures {
         compose = true
     }
-    composeOptions {
-        kotlinCompilerExtensionVersion = "1.5.1"
-    }
-    packaging {
-        resources {
-            excludes += "/META-INF/{AL2.0,LGPL2.1}"
-        }
-    }
 }
 
 dependencies {
+    implementation ("com.itextpdf:itextpdf:5.5.13.3")
+    implementation ("androidx.activity:activity-ktx:1.8.0")
+    implementation ("androidx.compose.material:material-icons-extended:1.5.4")
+
+    implementation ("com.squareup.moshi:moshi:1.15.0")
+    implementation ("com.squareup.moshi:moshi-kotlin:1.15.0")
+
+
+    implementation ("androidx.work:work-runtime-ktx:2.9.0")
+
+
+    implementation ("com.squareup.retrofit2:retrofit:2.9.0")
+    implementation ("com.squareup.retrofit2:converter-gson:2.9.0")
+    implementation ("com.google.code.gson:gson:2.10")
+    implementation ("com.squareup.okhttp3:logging-interceptor:4.9.3")
+
+    implementation ("androidx.compose.ui:ui:1.3.0")
+    implementation ("androidx.compose.material:material:1.3.0")
+    // Navigation dependencies
+    implementation("androidx.navigation:navigation-compose:2.5.1")
+    implementation("com.google.android.material:material:1.9.0")
+
+    // Room dependencies
+    implementation("androidx.room:room-runtime:2.6.1")
+    implementation(libs.androidx.work.runtime.ktx)
+    testImplementation("junit:junit:4.13.2")
+    testImplementation("androidx.test:core:1.5.0")
+    kapt("androidx.room:room-compiler:2.6.1")
+    implementation("androidx.room:room-ktx:2.6.1")
+    testImplementation("androidx.room:room-testing:2.6.1")
+
+    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.7.0")
+    implementation("androidx.lifecycle:lifecycle-livedata-ktx:2.7.0")
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)

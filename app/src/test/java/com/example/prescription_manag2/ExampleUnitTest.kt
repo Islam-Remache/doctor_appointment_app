@@ -1,4 +1,4 @@
-package com.example.doctor_appointment_app
+package com.example.prescription_manag2
 
 import org.junit.Test
 
